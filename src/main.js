@@ -1,9 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
 
 import {FBXLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
-import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
-
 
 class BasicCharacterControllerProxy {
   constructor(animations) {
@@ -66,8 +64,10 @@ class BasicCharacterController {
 
       const loader = new FBXLoader(this._manager);
       loader.setPath('./src/models/characters/XBot/animations/');
-      loader.load('Running.fbx', (a) => { _OnLoad('walk', a); });
+      loader.load('Walking.fbx', (a) => { _OnLoad('walk', a); });
+      loader.load('Running_Backward.fbx', (a) => { _OnLoad('walk_backward', a); });
       loader.load('Running.fbx', (a) => { _OnLoad('run', a); });
+      loader.load('Running_Backward.fbx', (a) => { _OnLoad('run_backward', a); });
       loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
       loader.load('Running_Backward.fbx', (a) => { _OnLoad('dance', a); });
     });
@@ -487,7 +487,7 @@ class CharacterControllerDemo {
     const near = 1.0;
     const far = 1000.0;
     this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    this._camera.position.set(25, 10, 25);
+    this._camera.position.set(0, 40, -40);
 
     this._scene = new THREE.Scene();
 
