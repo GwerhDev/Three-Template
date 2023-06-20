@@ -69,7 +69,6 @@ class BasicCharacterController {
       loader.load('Running.fbx', (a) => { _OnLoad('run', a); });
       loader.load('Running_Backward.fbx', (a) => { _OnLoad('run_backward', a); });
       loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
-      loader.load('Running_Backward.fbx', (a) => { _OnLoad('dance', a); });
     });
   }
 
@@ -88,7 +87,7 @@ class BasicCharacterController {
     );
     frameDecceleration.multiplyScalar(timeInSeconds);
     frameDecceleration.z = Math.sign(frameDecceleration.z) * Math.min(
-        Math.abs(frameDecceleration.z), Math.abs(velocity.z));
+      Math.abs(frameDecceleration.z), Math.abs(velocity.z));
 
     velocity.add(frameDecceleration);
 
@@ -101,11 +100,6 @@ class BasicCharacterController {
     if (this._input._keys.shift) {
       acc.multiplyScalar(2.0);
     }
-
-    if (this._stateMachine._currentState.Name == 'dance') {
-      acc.multiplyScalar(0.0);
-    }
-
     if (this._input._keys.forward) {
       velocity.z += acc.z * timeInSeconds;
     }
@@ -182,9 +176,6 @@ class BasicCharacterControllerInput {
       case 68: // d
         this._keys.right = true;
         break;
-      case 32: // SPACE
-        this._keys.space = true;
-        break;
       case 16: // SHIFT
         this._keys.shift = true;
         break;
@@ -205,16 +196,12 @@ class BasicCharacterControllerInput {
       case 68: // d
         this._keys.right = false;
         break;
-      case 32: // SPACE
-        this._keys.space = false;
-        break;
       case 16: // SHIFT
         this._keys.shift = false;
         break;
     }
   }
 };
-
 
 class FiniteStateMachine {
   constructor() {
@@ -249,7 +236,6 @@ class FiniteStateMachine {
   }
 };
 
-
 class CharacterFSM extends FiniteStateMachine {
   constructor(proxy) {
     super();
@@ -261,10 +247,8 @@ class CharacterFSM extends FiniteStateMachine {
     this._AddState('idle', IdleState);
     this._AddState('walk', WalkState);
     this._AddState('run', RunState);
-    this._AddState('dance', DanceState);
   }
 };
-
 
 class State {
   constructor(parent) {
@@ -275,58 +259,6 @@ class State {
   Exit() {}
   Update() {}
 };
-
-
-class DanceState extends State {
-  constructor(parent) {
-    super(parent);
-
-    this._FinishedCallback = () => {
-      this._Finished();
-    }
-  }
-
-  get Name() {
-    return 'dance';
-  }
-
-  Enter(prevState) {
-    const curAction = this._parent._proxy._animations['dance'].action;
-    const mixer = curAction.getMixer();
-    mixer.addEventListener('finished', this._FinishedCallback);
-
-    if (prevState) {
-      const prevAction = this._parent._proxy._animations[prevState.Name].action;
-
-      curAction.reset();  
-      curAction.setLoop(THREE.LoopOnce, 1);
-      curAction.clampWhenFinished = true;
-      curAction.crossFadeFrom(prevAction, 0.2, true);
-      curAction.play();
-    } else {
-      curAction.play();
-    }
-  }
-
-  _Finished() {
-    this._Cleanup();
-    this._parent.SetState('idle');
-  }
-
-  _Cleanup() {
-    const action = this._parent._proxy._animations['dance'].action;
-    
-    action.getMixer().removeEventListener('finished', this._CleanupCallback);
-  }
-
-  Exit() {
-    this._Cleanup();
-  }
-
-  Update(_) {
-  }
-};
-
 
 class WalkState extends State {
   constructor(parent) {
@@ -465,7 +397,6 @@ class CharacterControllerDemo {
   constructor() {
     this._Initialize();
   }
-
   _Initialize() {
     this._threejs = new THREE.WebGLRenderer({
       antialias: true,
@@ -515,6 +446,9 @@ class CharacterControllerDemo {
       this._camera, this._threejs.domElement);
     controls.target.set(0, 10, 0);
     controls.update();
+
+    this._group = new THREE.Group();
+    this._group.add(this._camera);
 
     const plane = new THREE.Mesh(
         new THREE.PlaneGeometry(100, 100, 10, 10),
@@ -591,12 +525,12 @@ class CharacterControllerDemo {
 
     if (this._controls) {
       this._controls.Update(timeElapsedS);
+      
     }
   }
 }
 
-
-let _APP = null;
+var _APP = null;
 
 window.addEventListener('DOMContentLoaded', () => {
   _APP = new CharacterControllerDemo();
