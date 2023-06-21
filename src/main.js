@@ -21,8 +21,24 @@ class BasicCharacterController {
 
   _Init(params) {
     const selectElement = document.getElementById('character-model-select');
+    const selectContainer = document.querySelector('.select-container');
+    const enterButton = document.getElementById('enter-button');
+    const buttonContainer = document.querySelector('.button-container');
+    const exitButton = document.querySelector('.exit-button-container');
+
+    exitButton.addEventListener('click', function() {
+      buttonContainer.style.display = 'flex';
+      selectContainer.style.display = 'none';
+      exitButton.style.display = 'none';
+    })
+
+    enterButton.addEventListener('click', function() {
+      buttonContainer.style.display = 'none';
+      selectContainer.style.display = 'flex';
+      exitButton.style.display = 'flex';
+    });
+
     selectElement.addEventListener('change', (e) => {
-      if(e.target.value==="none") return this._params.scene.remove(this._currentModel);
       this._params = params;
       this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
       this._acceleration = new THREE.Vector3(1, 0.25, 50.0);
@@ -35,11 +51,12 @@ class BasicCharacterController {
       );
         
       this._currentModel = this._target;
+      if(e.target.value==="none") return this._params.scene.remove(this._currentModel);
       this._params.scene.remove(this._currentModel);
       this._LoadModels(e.target.value);
-
     });
   }
+  
 
   _LoadModels(file) {
     const loader = new FBXLoader();
@@ -395,8 +412,6 @@ class IdleState extends State {
   Update(_, input) {
     if (input._keys.forward || input._keys.backward) {
       this._parent.SetState('walk');
-    } else if (input._keys.space) {
-      this._parent.SetState('dance');
     }
   }
 };
