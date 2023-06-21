@@ -5,7 +5,7 @@
     "three": "^0.152.2"
   },
   "scripts": {
-    "copy-models": "cpy src/models/characters dist/",
+    "copy-models": "cpy src/models/characters dist/assets",
     "start": "vite",
     "build": "vite build && npm run copy-models",
     "predeploy": "npm run build",
