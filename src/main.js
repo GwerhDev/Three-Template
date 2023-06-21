@@ -35,8 +35,8 @@ class BasicCharacterController {
 
   _LoadModels() {
     const loader = new FBXLoader();
-    loader.setPath('./src/models/characters/XBot/');
-    loader.load('X_Bot.fbx', (fbx) => {
+    loader.setPath('./src/models/characters/');
+    loader.load('Arissa.fbx', (fbx) => {
       fbx.scale.setScalar(0.1);
       fbx.traverse(c => {
         c.castShadow = true;
@@ -63,7 +63,7 @@ class BasicCharacterController {
       };
 
       const loader = new FBXLoader(this._manager);
-      loader.setPath('./src/models/characters/XBot/animations/');
+      loader.setPath('./src/models/animations/');
       loader.load('Walking.fbx', (a) => { _OnLoad('walk', a); });
       loader.load('Running_Backward.fbx', (a) => { _OnLoad('walk_backward', a); });
       loader.load('Running.fbx', (a) => { _OnLoad('run', a); });
