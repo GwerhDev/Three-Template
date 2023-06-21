@@ -1,14 +1,9 @@
-const { resolve } = require('path');
-
+// vite.config.js
 module.exports = {
-  base: '/',
-
-  resolve: {
-    alias: {
-      // Agrega una entrada para los archivos de modelos 3D
-      '/@models/': resolve(__dirname, 'src/models/'),
-    },
-  },
-
-  // Otras configuraciones de Vite...
+  build: {
+    rollupOptions: {
+      // Agrega la configuración de externalización para index.html y main.js
+      external: ['index.html', 'src/main.js']
+    }
+  }
 };
