@@ -7,7 +7,7 @@
   "scripts": {
     "copy-models": "cpy src/models/characters dist/",
     "start": "vite",
-    "build": "vite build && npm run copy-models",
+    "build": "vite build && npm run copy-models && node modify-index.js",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
