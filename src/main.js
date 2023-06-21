@@ -13,30 +13,38 @@ class BasicCharacterControllerProxy {
   }
 };
 
-
 class BasicCharacterController {
   constructor(params) {
     this._Init(params);
+    this._currentModel = null;
   }
 
   _Init(params) {
-    this._params = params;
-    this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
-    this._acceleration = new THREE.Vector3(1, 0.25, 50.0);
-    this._velocity = new THREE.Vector3(0, 0, 0);
+    const selectElement = document.getElementById('character-model-select');
+    selectElement.addEventListener('change', (e) => {
+      if(e.target.value==="none") return this._params.scene.remove(this._currentModel);
+      this._params = params;
+      this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
+      this._acceleration = new THREE.Vector3(1, 0.25, 50.0);
+      this._velocity = new THREE.Vector3(0, 0, 0);
+      
+      this._animations = {};
+      this._input = new BasicCharacterControllerInput();
+      this._stateMachine = new CharacterFSM(
+        new BasicCharacterControllerProxy(this._animations)
+      );
+        
+      this._currentModel = this._target;
+      this._params.scene.remove(this._currentModel);
+      this._LoadModels(e.target.value);
 
-    this._animations = {};
-    this._input = new BasicCharacterControllerInput();
-    this._stateMachine = new CharacterFSM(
-        new BasicCharacterControllerProxy(this._animations));
-
-    this._LoadModels();
+    });
   }
 
-  _LoadModels() {
+  _LoadModels(file) {
     const loader = new FBXLoader();
     loader.setPath('./src/models/characters/');
-    loader.load('Arissa.fbx', (fbx) => {
+    loader.load(file, (fbx) => {
       fbx.scale.setScalar(0.1);
       fbx.traverse(c => {
         c.castShadow = true;
@@ -143,6 +151,7 @@ class BasicCharacterController {
     }
   }
 };
+
 
 class BasicCharacterControllerInput {
   constructor() {
