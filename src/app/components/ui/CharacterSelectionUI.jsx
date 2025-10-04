@@ -17,20 +17,20 @@ const CharacterSelectionUI = ({ onCharacterChange, onExit, character, onSelectCh
       setCurrentIndex(initialIndex);
     } else if (characters.length > 0) {
       // If no character is selected or an invalid one, default to the first
-      onCharacterChange({ target: { value: characters[0].file } });
+      onCharacterChange(characters[0].file);
     }
   }, [character, onCharacterChange]);
 
   const handleNextCharacter = () => {
     const nextIndex = (currentIndex + 1) % characters.length;
     setCurrentIndex(nextIndex);
-    onCharacterChange({ target: { value: characters[nextIndex].file } });
+    onCharacterChange(characters[nextIndex].file);
   };
 
   const handlePreviousCharacter = () => {
     const prevIndex = (currentIndex - 1 + characters.length) % characters.length;
     setCurrentIndex(prevIndex);
-    onCharacterChange({ target: { value: characters[prevIndex].file } });
+    onCharacterChange(characters[prevIndex].file);
   };
 
   return (

@@ -10,10 +10,23 @@ const ThreeScene = forwardRef((props, ref) => {
   const mountRef = useRef(null);
   const controlsRef = useRef(null);
 
-  useImperativeHandle(ref, () => ({    loadCharacter(characterFile) {
+  useImperativeHandle(ref, () => ({    loadCharacter(characterFile, onLoadCallback) {
       if (controlsRef.current) {
-        controlsRef.current._LoadModels(characterFile);
+        controlsRef.current._LoadModels(characterFile, onLoadCallback);
       }
+    },
+    moveCameraBehindCharacter(characterPosition, characterQuaternion) {
+      // Implement camera movement logic here
+      const offset = new THREE.Vector3(0, 10, -20); // Offset behind the character
+      offset.applyQuaternion(characterQuaternion);
+
+      const newCameraPosition = characterPosition.clone().add(offset);
+      const newCameraTarget = characterPosition.clone().add(new THREE.Vector3(0, 10, 0)); // Look at character's chest area
+
+      // For simplicity, we'll directly set for now, but a tweening library would be better for smooth animation
+      camera.position.copy(newCameraPosition);
+      orbitControls.target.copy(newCameraTarget);
+      orbitControls.update();
     }
   }));
 

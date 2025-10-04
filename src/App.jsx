@@ -6,24 +6,36 @@ import Layout from './app/layouts/Layout';
 
 function App() {
   const [showUI, setShowUI] = useState(true);
+  const [showCharacterSelectionUI, setShowCharacterSelectionUI] = useState(true);
   const [character, setCharacter] = useState('none');
   const threeSceneRef = useRef(null);
 
   const handleEnter = () => {
     setShowUI(false);
+    setShowCharacterSelectionUI(true);
   };
 
   const handleExit = () => {
     setShowUI(true);
+    setShowCharacterSelectionUI(true);
     setCharacter('none'); // Reset character when exiting
   };
 
-  const handleCharacterChange = (e) => {
-    const selectedCharacter = e.target.value;
+  const handleCharacterChange = (selectedCharacter) => {
     setCharacter(selectedCharacter);
     if (threeSceneRef.current) {
       threeSceneRef.current.loadCharacter(selectedCharacter);
     }
+  };
+
+  const handleSelectCharacter = (selectedCharacter) => {
+    setCharacter(selectedCharacter);
+    if (threeSceneRef.current) {
+      threeSceneRef.current.loadCharacter(selectedCharacter, (position, quaternion) => {
+        threeSceneRef.current.moveCameraBehindCharacter(position, quaternion);
+      });
+    }
+    setShowCharacterSelectionUI(false);
   };
 
   useEffect(() => {
@@ -36,11 +48,14 @@ function App() {
   const uiContent = showUI ? (
     <EnterScreen onEnter={handleEnter} />
   ) : (
-    <CharacterSelectionUI
-      onCharacterChange={handleCharacterChange}
-      onExit={handleExit}
-      character={character}
-    />
+    showCharacterSelectionUI && (
+      <CharacterSelectionUI
+        onCharacterChange={handleCharacterChange}
+        onExit={handleExit}
+        character={character}
+        onSelectCharacter={handleSelectCharacter}
+      />
+    )
   );
 
   return (

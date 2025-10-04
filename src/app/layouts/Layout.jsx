@@ -16,7 +16,6 @@ const Layout = ({ threeScene, ui }) => {
         gridArea: 'threeScene',
         position: 'relative',
         zIndex: 1,
-        pointerEvents: 'none',
       }}>
         <div style={{ pointerEvents: 'auto' }}>
           {ui}

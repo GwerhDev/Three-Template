@@ -34,13 +34,18 @@ class BasicCharacterController {
     this._isLoading = false; // Add a loading flag
   }
   
+  get Target() {
+    return this._target;
+  }
+  
 
-  _LoadModels(file) {
+  _LoadModels(file, onLoadCallback) {
     if (this._isLoading) {
       console.warn('Model is already loading. Please wait.');
       return;
     }
     this._isLoading = true;
+
     if (this._target) {
       this._params.scene.remove(this._target);
       this._target = null; // Clear the reference after removing
@@ -55,6 +60,7 @@ class BasicCharacterController {
     const characterUrl = characterMap[file];
     if (!characterUrl) {
       console.error('Unknown character file:', file);
+      this._isLoading = false; // Reset loading flag on error
       return;
     }
     loader.load(characterUrl, (fbx) => {
@@ -76,7 +82,10 @@ class BasicCharacterController {
       this._manager = new THREE.LoadingManager();
       this._manager.onLoad = () => {
         this._stateMachine.SetState('idle');
-        this._isLoading = false;
+        this._isLoading = false; // Set loading to false after all animations are loaded
+        if (onLoadCallback) {
+          onLoadCallback(this._target.position, this._target.quaternion);
+        }
       };
 
       const _OnLoad = (animName, anim) => {
@@ -96,6 +105,10 @@ class BasicCharacterController {
       loader.load(RunningBackwardFbx, (a) => { _OnLoad('run_backward', a); });
       loader.load(IdleFbx, (a) => { _OnLoad('idle', a); });
     });
+  }
+
+  get Target() {
+    return this._target;
   }
 
   Update(timeInSeconds) {
