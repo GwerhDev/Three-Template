@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useEffect, useRef, forwardRef, useImperativeHandle, useState } from 'react';
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -7,6 +7,7 @@ import BasicCharacterControllerProxy from './app/components/three/BasicCharacter
 import BasicCharacterController from './app/components/three/BasicCharacterController';
 
 const ThreeScene = forwardRef((props, ref) => {
+  const { onOpenDialogue, isCharacterSelected } = props;
   const mountRef = useRef(null);
   const controlsRef = useRef(null);
   const cameraRef = useRef(null);
@@ -20,6 +21,17 @@ const ThreeScene = forwardRef((props, ref) => {
   const initialCameraPosition = useRef(new THREE.Vector3());
   const initialOrbitControlsTarget = useRef(new THREE.Vector3());
   const characterPositionAtTransitionStart = useRef(new THREE.Vector3());
+  const dummyCubeRef = useRef(null);
+
+  useEffect(() => {
+    if (isCharacterSelected && dummyCubeRef.current) {
+      // Position the cube further away after character is loaded
+      dummyCubeRef.current.position.set(0, 2.5, -30);
+    } else if (!isCharacterSelected && dummyCubeRef.current) {
+      // Hide the cube if no character is selected
+      dummyCubeRef.current.position.set(1000, 1000, 1000);
+    }
+  }, [isCharacterSelected]);
 
   useImperativeHandle(ref, () => ({    loadCharacter(characterFile, onLoadCallback) {
       if (controlsRef.current) {
@@ -103,6 +115,42 @@ const ThreeScene = forwardRef((props, ref) => {
     plane.receiveShadow = true;
     plane.rotation.x = -Math.PI / 2;
     scene.add(plane);
+
+    // Dummy Cube
+    const cubeGeometry = new THREE.BoxGeometry(5, 5, 5);
+    const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+    const dummyCube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    dummyCube.position.set(1000, 1000, 1000); // Initially far away
+    dummyCube.name = 'dummyCube'; // Give it a name for raycasting
+    scene.add(dummyCube);
+    dummyCubeRef.current = dummyCube;
+
+    // Raycaster for interaction
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    const onMouseClick = (event) => {
+      // Calculate mouse position in normalized device coordinates (-1 to +1)
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      // Update the raycaster with the camera and mouse position
+      raycaster.setFromCamera(mouse, camera);
+
+      // Calculate objects intersecting the raycaster
+      const intersects = raycaster.intersectObjects(scene.children);
+
+      for (let i = 0; i < intersects.length; i++) {
+        if (intersects[i].object.name === 'dummyCube') {
+          intersects[i].object.rotation.y += Math.PI / 4; // Rotate on click
+          if (onOpenDialogue) {
+            onOpenDialogue();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('click', onMouseClick, false);
 
     const params = {
       camera: camera,
@@ -189,6 +237,7 @@ const ThreeScene = forwardRef((props, ref) => {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('click', onMouseClick, false);
       mount.removeChild(renderer.domElement);
     };
   }, []);
