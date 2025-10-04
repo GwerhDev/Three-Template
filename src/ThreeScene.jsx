@@ -35,7 +35,7 @@ const ThreeScene = forwardRef((props, ref) => {
     const near = 1.0;
     const far = 1000.0;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    camera.position.set(0, 40, -40);
+    camera.position.set(0, 15, -20);
 
     const scene = new THREE.Scene();
 

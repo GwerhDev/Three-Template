@@ -66,6 +66,11 @@ class BasicCharacterController {
       this._target = fbx;
       this._params.scene.add(this._target);
 
+      // Make the character face the camera
+      const cameraPosition = this._params.camera.position.clone();
+      cameraPosition.y = this._target.position.y; // Keep character at the same height
+      this._target.lookAt(cameraPosition);
+
       this._mixer = new THREE.AnimationMixer(this._target);
 
       this._manager = new THREE.LoadingManager();
