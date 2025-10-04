@@ -14,8 +14,8 @@ const DialogueOptionsUI = ({ onClose }) => {
       zIndex: 1000,
       textAlign: 'center',
     }}>
-      <h2>Opciones de Diálogo</h2>
-      <p>Aquí irían las opciones de diálogo para interactuar con el cubo.</p>
+      <h2>Interact</h2>
+      <p>Here are the dialogue options to interact with the dummy.</p>
       <button onClick={onClose} style={{
         marginTop: '10px',
         padding: '8px 15px',
