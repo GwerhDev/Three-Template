@@ -16,3 +16,17 @@
   border-color: goldenrod;
   cursor: pointer;
 }
+
+.buttonContainer {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.479);
+  color: aliceblue;
+  backdrop-filter: blur(10px);
+  z-index: 1;
+}

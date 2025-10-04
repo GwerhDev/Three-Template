@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Layout = ({ threeScene, ui }) => {
   return (
     <div style={{

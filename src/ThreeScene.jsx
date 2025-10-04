@@ -42,7 +42,7 @@ class BasicCharacterController {
     }
 
     const loader = new FBXLoader();
-    loader.setPath('src/models/characters/');
+        loader.setPath('/assets/models/characters/');
     loader.load(file, (fbx) => {
       fbx.scale.setScalar(0.1);
       fbx.traverse(c => {
@@ -70,7 +70,7 @@ class BasicCharacterController {
       };
 
       const loader = new FBXLoader(this._manager);
-      loader.setPath('src/models/animations/');
+            loader.setPath('/assets/models/animations/');
       loader.load('Walking.fbx', (a) => { _OnLoad('walk', a); });
       loader.load('Running_Backward.fbx', (a) => { _OnLoad('walk_backward', a); });
       loader.load('Running.fbx', (a) => { _OnLoad('run', a); });

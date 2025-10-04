@@ -1,6 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Aboreto&display=swap');
-body{
-  margin: 0;
-  overflow: hidden;
-  font-family: Aboreto;
+.selectContainer {
+  position: absolute;
+  bottom: 25px;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
+.exitButtonContainer {
+  position: absolute;
+  right: 30px;
+  top: 30px;
+  display: flex;
+  z-index: 1;
+}
+
+.hidden {
+  display: none;
 }

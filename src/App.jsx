@@ -1,9 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import ThreeScene from './ThreeScene';
-import EnterScreen from './components/EnterScreen';
-import CharacterSelectionUI from './components/CharacterSelectionUI';
-import Layout from './components/Layout';
-import './styles/globals.css';
+import EnterScreen from './app/components/EnterScreen';
+import CharacterSelectionUI from './app/components/CharacterSelectionUI';
+import Layout from './app/layouts/Layout';
 
 function App() {
   const [showUI, setShowUI] = useState(true);
