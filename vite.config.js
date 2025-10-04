@@ -4,6 +4,7 @@ import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/Three-Template/', // Set base path for GitHub Pages
   plugins: [react()],
   assetsInclude: ['**/*.fbx'],
   resolve: {
@@ -12,6 +13,5 @@ export default defineConfig({
     },
   },
   build: {
-    base: './',
   }
 })
