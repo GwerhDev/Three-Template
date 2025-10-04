@@ -31,12 +31,19 @@ class BasicCharacterController {
     this._stateMachine = new CharacterFSM(
       new BasicCharacterControllerProxy(this._animations)
     );
+    this._isLoading = false; // Add a loading flag
   }
   
 
   _LoadModels(file) {
+    if (this._isLoading) {
+      console.warn('Model is already loading. Please wait.');
+      return;
+    }
+    this._isLoading = true;
     if (this._target) {
       this._params.scene.remove(this._target);
+      this._target = null; // Clear the reference after removing
     }
 
     const loader = new FBXLoader();
@@ -64,6 +71,7 @@ class BasicCharacterController {
       this._manager = new THREE.LoadingManager();
       this._manager.onLoad = () => {
         this._stateMachine.SetState('idle');
+        this._isLoading = false;
       };
 
       const _OnLoad = (animName, anim) => {
