@@ -1,18 +1,19 @@
 {
   "dependencies": {
+    "@vitejs/plugin-react": "^5.0.4",
     "fflate": "^0.8.0",
     "gh-pages": "^5.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "three": "^0.152.2"
   },
   "scripts": {
-    "copy-models": "cpy src/models dist/",
     "start": "vite",
-    "build": "vite build && npm run copy-models && node modify-index.js",
+    "build": "vite build",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
   "devDependencies": {
-    "cpy-cli": "^4.2.0",
-    "vite": "^2.6.4"
+    "vite": "^7.1.9"
   }
 }

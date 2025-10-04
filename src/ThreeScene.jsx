@@ -1,7 +1,10 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
+import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import * as THREE from 'three';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-import {FBXLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
-import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
+// All the classes (BasicCharacterControllerProxy, BasicCharacterController, BasicCharacterControllerInput, FiniteStateMachine, CharacterFSM, State, WalkState, RunState, IdleState) will remain here for now.
+// They are part of the Three.js logic and will be encapsulated within this component.
 
 class BasicCharacterControllerProxy {
   constructor(animations) {
@@ -20,47 +23,26 @@ class BasicCharacterController {
   }
 
   _Init(params) {
-    const selectElement = document.getElementById('character-model-select');
-    const selectContainer = document.querySelector('.select-container');
-    const enterButton = document.getElementById('enter-button');
-    const buttonContainer = document.querySelector('.button-container');
-    const exitButton = document.querySelector('.exit-button-container');
-
-    exitButton.addEventListener('click', function() {
-      buttonContainer.style.display = 'flex';
-      selectContainer.style.display = 'none';
-      exitButton.style.display = 'none';
-    })
-
-    enterButton.addEventListener('click', function() {
-      buttonContainer.style.display = 'none';
-      selectContainer.style.display = 'flex';
-      exitButton.style.display = 'flex';
-    });
-
-    selectElement.addEventListener('change', (e) => {
-      this._params = params;
-      this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
-      this._acceleration = new THREE.Vector3(1, 0.25, 50.0);
-      this._velocity = new THREE.Vector3(0, 0, 0);
-      
-      this._animations = {};
-      this._input = new BasicCharacterControllerInput();
-      this._stateMachine = new CharacterFSM(
-        new BasicCharacterControllerProxy(this._animations)
-      );
-        
-      this._currentModel = this._target;
-      if(e.target.value==="none") return this._params.scene.remove(this._currentModel);
-      this._params.scene.remove(this._currentModel);
-      this._LoadModels(e.target.value);
-    });
+    this._params = params;
+    this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
+    this._acceleration = new THREE.Vector3(1, 0.25, 50.0);
+    this._velocity = new THREE.Vector3(0, 0, 0);
+    
+    this._animations = {};
+    this._input = new BasicCharacterControllerInput();
+    this._stateMachine = new CharacterFSM(
+      new BasicCharacterControllerProxy(this._animations)
+    );
   }
   
 
   _LoadModels(file) {
+    if (this._target) {
+      this._params.scene.remove(this._target);
+    }
+
     const loader = new FBXLoader();
-    loader.setPath('./src/models/characters/');
+    loader.setPath('src/models/characters/');
     loader.load(file, (fbx) => {
       fbx.scale.setScalar(0.1);
       fbx.traverse(c => {
@@ -88,7 +70,7 @@ class BasicCharacterController {
       };
 
       const loader = new FBXLoader(this._manager);
-      loader.setPath('./src/models/animations/');
+      loader.setPath('src/models/animations/');
       loader.load('Walking.fbx', (a) => { _OnLoad('walk', a); });
       loader.load('Running_Backward.fbx', (a) => { _OnLoad('walk_backward', a); });
       loader.load('Running.fbx', (a) => { _OnLoad('run', a); });
@@ -416,35 +398,38 @@ class IdleState extends State {
   }
 };
 
+const ThreeScene = forwardRef((props, ref) => {
+  const mountRef = useRef(null);
+  const controlsRef = useRef(null);
 
-class CharacterControllerDemo {
-  constructor() {
-    this._Initialize();
-  }
-  _Initialize() {
-    this._threejs = new THREE.WebGLRenderer({
+  useImperativeHandle(ref, () => ({    loadCharacter(characterFile) {
+      if (controlsRef.current) {
+        controlsRef.current._LoadModels(characterFile);
+      }
+    }
+  }));
+
+  useEffect(() => {
+    const mount = mountRef.current;
+
+    const renderer = new THREE.WebGLRenderer({
       antialias: true,
     });
-    this._threejs.outputEncoding = THREE.sRGBEncoding;
-    this._threejs.shadowMap.enabled = true;
-    this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
-    this._threejs.setPixelRatio(window.devicePixelRatio);
-    this._threejs.setSize(window.innerWidth, window.innerHeight);
-
-    document.body.appendChild(this._threejs.domElement);
-
-    window.addEventListener('resize', () => {
-      this._OnWindowResize();
-    }, false);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    mount.appendChild(renderer.domElement);
 
     const fov = 60;
-    const aspect = 1920 / 1080;
+    const aspect = window.innerWidth / window.innerHeight; // Use window.innerWidth / window.innerHeight for correct aspect ratio
     const near = 1.0;
     const far = 1000.0;
-    this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    this._camera.position.set(0, 40, -40);
+    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    camera.position.set(0, 40, -40);
 
-    this._scene = new THREE.Scene();
+    const scene = new THREE.Scene();
 
     let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
     light.position.set(-100, 100, 100);
@@ -455,24 +440,18 @@ class CharacterControllerDemo {
     light.shadow.mapSize.height = 4096;
     light.shadow.camera.near = 0.1;
     light.shadow.camera.far = 500.0;
-    light.shadow.camera.near = 0.5;
-    light.shadow.camera.far = 500.0;
     light.shadow.camera.left = 50;
     light.shadow.camera.right = -50;
     light.shadow.camera.top = 50;
     light.shadow.camera.bottom = -50;
-    this._scene.add(light);
+    scene.add(light);
 
     light = new THREE.AmbientLight(0xFFFFFF, 0.25);
-    this._scene.add(light);
+    scene.add(light);
 
-    const controls = new OrbitControls(
-      this._camera, this._threejs.domElement);
-    controls.target.set(0, 10, 0);
-    controls.update();
-
-    this._group = new THREE.Group();
-    this._group.add(this._camera);
+    const orbitControls = new OrbitControls(camera, renderer.domElement);
+    orbitControls.target.set(0, 10, 0);
+    orbitControls.update();
 
     const plane = new THREE.Mesh(
         new THREE.PlaneGeometry(100, 100, 10, 10),
@@ -482,80 +461,54 @@ class CharacterControllerDemo {
     plane.castShadow = false;
     plane.receiveShadow = true;
     plane.rotation.x = -Math.PI / 2;
-    this._scene.add(plane);
+    scene.add(plane);
 
-    this._mixers = [];
-    this._previousRAF = null;
-
-    this._LoadAnimatedModel();
-    this._RAF();
-  }
-
-  _LoadAnimatedModel() {
     const params = {
-      camera: this._camera,
-      scene: this._scene,
+      camera: camera,
+      scene: scene,
     }
-    this._controls = new BasicCharacterController(params);
-  }
+    const controls = new BasicCharacterController(params);
+    controlsRef.current = controls;
 
-  _LoadAnimatedModelAndPlay(path, modelFile, animFile, offset) {
-    const loader = new FBXLoader();
-    loader.setPath(path);
-    loader.load(modelFile, (fbx) => {
-      fbx.scale.setScalar(0.1);
-      fbx.traverse(c => {
-        c.castShadow = true;
-      });
-      fbx.position.copy(offset);
+    let previousRAF = null;
 
-      const anim = new FBXLoader();
-      anim.setPath(path);
-      anim.load(animFile, (anim) => {
-        const m = new THREE.AnimationMixer(fbx);
-        this._mixers.push(m);
-        const idle = m.clipAction(anim.animations[0]);
-        idle.play();
-      });
-      this._scene.add(fbx);
-    });
-  }
-
-  _OnWindowResize() {
-    this._camera.aspect = window.innerWidth / window.innerHeight;
-    this._camera.updateProjectionMatrix();
-    this._threejs.setSize(window.innerWidth, window.innerHeight);
-  }
-
-  _RAF() {
-    requestAnimationFrame((t) => {
-      if (this._previousRAF === null) {
-        this._previousRAF = t;
+    const raf = (t) => {
+      if (previousRAF === null) {
+        previousRAF = t;
       }
 
-      this._RAF();
-
-      this._threejs.render(this._scene, this._camera);
-      this._Step(t - this._previousRAF);
-      this._previousRAF = t;
-    });
-  }
-
-  _Step(timeElapsed) {
-    const timeElapsedS = timeElapsed * 0.001;
-    if (this._mixers) {
-      this._mixers.map(m => m.update(timeElapsedS));
+      renderer.render(scene, camera);
+      step(t - previousRAF);
+      previousRAF = t;
+      requestAnimationFrame(raf);
+    }
+    
+    const step = (timeElapsed) => {
+      const timeElapsedS = timeElapsed * 0.001;
+      controls.Update(timeElapsedS);
     }
 
-    if (this._controls) {
-      this._controls.Update(timeElapsedS);
-      
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
     }
-  }
-}
 
-var _APP = null;
+    window.addEventListener('resize', handleResize);
 
-window.addEventListener('DOMContentLoaded', () => {
-  _APP = new CharacterControllerDemo();
+    raf(0);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      mount.removeChild(renderer.domElement);
+    };
+  }, []);
+
+  return (
+    <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
+      <div ref={mountRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
+    </div>
+  );
 });
+
+export default ThreeScene;
