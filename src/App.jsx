@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import ThreeScene from './ThreeScene';
-import EnterScreen from './app/components/EnterScreen';
-import CharacterSelectionUI from './app/components/CharacterSelectionUI';
+import EnterScreen from './app/components/screens/EnterScreen';
+import CharacterSelectionUI from './app/components/ui/CharacterSelectionUI';
 import Layout from './app/layouts/Layout';
 
 function App() {
