@@ -32,6 +32,7 @@ class BasicCharacterController {
       new BasicCharacterControllerProxy(this._animations)
     );
     this._isLoading = false; // Add a loading flag
+    this._enabled = true; // New: Enable movement by default
   }
   
   get Target() {
@@ -116,6 +117,13 @@ class BasicCharacterController {
       return;
     }
 
+    if (!this._enabled) {
+      if (this._mixer) {
+        this._mixer.update(timeInSeconds);
+      }
+      return;
+    }
+
     this._stateMachine.Update(timeInSeconds, this._input);
 
     const velocity = this._velocity;
@@ -179,6 +187,22 @@ class BasicCharacterController {
 
     if (this._mixer) {
       this._mixer.update(timeInSeconds);
+    }
+  }
+
+  SetEnabled(enabled) {
+    this._enabled = enabled;
+    if (!enabled) {
+      // Optionally reset input state when disabling movement
+      this._input._keys.forward = false;
+      this._input._keys.backward = false;
+      this._input._keys.left = false;
+      this._input._keys.right = false;
+      this._input._keys.shift = false;
+      // Also reset velocity to stop any residual movement
+      this._velocity.set(0, 0, 0);
+      // Set to idle animation if movement is disabled
+      this._stateMachine.SetState('idle');
     }
   }
 };

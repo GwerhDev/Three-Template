@@ -7,7 +7,7 @@ import BasicCharacterControllerProxy from './app/components/three/BasicCharacter
 import BasicCharacterController from './app/components/three/BasicCharacterController';
 
 const ThreeScene = forwardRef((props, ref) => {
-  const { onOpenDialogue, isCharacterSelected } = props;
+  const { onOpenDialogue, onCloseDialogue, isCharacterSelected, isCharacterMovementBlocked, toggleCharacterMovement, onShowInteractionOptions } = props;
   const mountRef = useRef(null);
   const controlsRef = useRef(null);
   const cameraRef = useRef(null);
@@ -22,6 +22,50 @@ const ThreeScene = forwardRef((props, ref) => {
   const initialOrbitControlsTarget = useRef(new THREE.Vector3());
   const characterPositionAtTransitionStart = useRef(new THREE.Vector3());
   const dummyCubeRef = useRef(null);
+
+  useEffect(() => {
+    if (isCharacterSelected && dummyCubeRef.current) {
+      // Position the cube further away after character is loaded
+      dummyCubeRef.current.position.set(0, 2.5, -30);
+    } else if (!isCharacterSelected && dummyCubeRef.current) {
+      // Hide the cube if no character is selected
+      dummyCubeRef.current.position.set(1000, 1000, 1000);
+    }
+  }, [isCharacterSelected]);
+
+  // Effect to control character movement based on prop
+  useEffect(() => {
+    if (controlsRef.current) {
+      controlsRef.current.SetEnabled(!isCharacterMovementBlocked);
+    }
+  }, [isCharacterMovementBlocked]);
+
+  useImperativeHandle(ref, () => ({    loadCharacter(characterFile, onLoadCallback) {
+      if (controlsRef.current) {
+        controlsRef.current._LoadModels(characterFile, onLoadCallback);
+      }
+    },
+    moveCameraBehindCharacter(characterPosition, characterQuaternion) {
+      const finalOffset = new THREE.Vector3(20, 20, -20); // Final following offset
+
+      // Store initial camera state
+      initialCameraPosition.current.copy(cameraRef.current.position);
+      initialOrbitControlsTarget.current.copy(orbitControlsRef.current.target);
+      characterPositionAtTransitionStart.current.copy(characterPosition);
+
+      // Calculate final camera position and target
+      finalOffset.applyQuaternion(characterQuaternion);
+      const finalCameraPosition = characterPosition.clone().add(finalOffset);
+      const finalOrbitControlsTarget = characterPosition.clone().add(new THREE.Vector3(0, 10, 0));
+
+      // Set transition parameters
+      targetCameraPosition.current = finalCameraPosition; // This will be the target for the orbital transition
+      targetOrbitControlsTarget.current = finalOrbitControlsTarget; // This will be the target for the orbital transition
+      transitionStartTime.current = performance.now();
+      isTrackingCharacter.current = true;
+      transitioning.current = true; // Set transitioning flag
+    }
+  }));
 
   useEffect(() => {
     if (isCharacterSelected && dummyCubeRef.current) {
@@ -141,10 +185,14 @@ const ThreeScene = forwardRef((props, ref) => {
       const intersects = raycaster.intersectObjects(scene.children);
 
       for (let i = 0; i < intersects.length; i++) {
-        if (intersects[i].object.name === 'dummyCube') {
-          intersects[i].object.rotation.y += Math.PI / 4; // Rotate on click
-          if (onOpenDialogue) {
-            onOpenDialogue();
+        const intersectedObject = intersects[i].object;
+
+        if (intersectedObject.name === 'dummyCube') {
+          intersectedObject.rotation.y += Math.PI / 4; // Rotate on click
+          toggleCharacterMovement(true); // Block character movement
+          // Call a new prop to show UI interaction options
+          if (props.onShowInteractionOptions) {
+            props.onShowInteractionOptions();
           }
         }
       }
