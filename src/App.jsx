@@ -52,6 +52,7 @@ function App() {
 
   const handleCloseDialogue = () => {
     setShowDialogue(false);
+    toggleCharacterMovement(false); // Unblock character movement when dialogue closes
   };
 
   // Character movement handler
