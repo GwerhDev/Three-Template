@@ -3,6 +3,15 @@ import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
+import X_ArcherFbx from '@assets/models/characters/X_Archer.fbx';
+import X_BotFbx from '@assets/models/characters/X_Bot.fbx';
+import Y_MilitiaFbx from '@assets/models/characters/Y_Militia.fbx';
+
+import WalkingFbx from '@assets/models/animations/Walking.fbx';
+import RunningBackwardFbx from '@assets/models/animations/Running_Backward.fbx';
+import RunningFbx from '@assets/models/animations/Running.fbx';
+import IdleFbx from '@assets/models/animations/Idle.fbx';
+
 // All the classes (BasicCharacterControllerProxy, BasicCharacterController, BasicCharacterControllerInput, FiniteStateMachine, CharacterFSM, State, WalkState, RunState, IdleState) will remain here for now.
 // They are part of the Three.js logic and will be encapsulated within this component.
 
@@ -41,9 +50,18 @@ class BasicCharacterController {
       this._params.scene.remove(this._target);
     }
 
-    const loader = new FBXLoader();
-        loader.setPath('/assets/models/characters/');
-    loader.load(file, (fbx) => {
+            const loader = new FBXLoader();
+        const characterMap = {
+      'X_Archer.fbx': X_ArcherFbx,
+      'X_Bot.fbx': X_BotFbx,
+      'Y_Militia.fbx': Y_MilitiaFbx,
+    };
+    const characterUrl = characterMap[file];
+    if (!characterUrl) {
+      console.error('Unknown character file:', file);
+      return;
+    }
+    loader.load(characterUrl, (fbx) => {
       fbx.scale.setScalar(0.1);
       fbx.traverse(c => {
         c.castShadow = true;
@@ -69,13 +87,12 @@ class BasicCharacterController {
         };
       };
 
-      const loader = new FBXLoader(this._manager);
-            loader.setPath('/assets/models/animations/');
-      loader.load('Walking.fbx', (a) => { _OnLoad('walk', a); });
-      loader.load('Running_Backward.fbx', (a) => { _OnLoad('walk_backward', a); });
-      loader.load('Running.fbx', (a) => { _OnLoad('run', a); });
-      loader.load('Running_Backward.fbx', (a) => { _OnLoad('run_backward', a); });
-      loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
+                  const loader = new FBXLoader(this._manager);
+            loader.load(WalkingFbx, (a) => { _OnLoad('walk', a); });
+      loader.load(RunningBackwardFbx, (a) => { _OnLoad('walk_backward', a); });
+      loader.load(RunningFbx, (a) => { _OnLoad('run', a); });
+      loader.load(RunningBackwardFbx, (a) => { _OnLoad('run_backward', a); });
+      loader.load(IdleFbx, (a) => { _OnLoad('idle', a); });
     });
   }
 
