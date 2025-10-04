@@ -1,19 +1,47 @@
-.select {
+.controlsContainer {
+  position: absolute;
+  bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.exitButtonContainer,
+.selectButtonContainer {
+  display: flex;
+  padding-inline: 1rem;
+}
+
+.sliderContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.navButton {
   background-color: rgba(0, 0, 0, 0.719);
   color: white;
   backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 10px;
-  border-width: 2px;
-  border-color: rgb(255, 255, 255);
+  border-radius: 50%;
+  padding: 10px 15px;
+  border: 2px solid rgb(255, 255, 255);
   transition-duration: .4s;
-  font-size: 20px;
-  font-family: Aboreto;
+  font-size: 24px;
+  cursor: pointer;
 }
 
-.select:hover {
+.navButton:hover {
   border-color: goldenrod;
-  cursor: pointer;
+}
+
+.characterName {
+  color: white;
+  font-size: 24px;
+  font-family: Aboreto;
+  min-width: 150px;
+  text-align: center;
 }
 
 .button {
