@@ -8,7 +8,7 @@ export default defineConfig({
   assetsInclude: ['**/*.fbx'],
   resolve: {
     alias: {
-            '@assets': path.resolve(__dirname, './src/app/assets'),
+            '@assets': path.resolve(__dirname, './src/assets'),
     },
   },
   build: {
