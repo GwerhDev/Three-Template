@@ -34,7 +34,7 @@ const CharacterInteractionOptionsUI = ({ onOpenDialogue, onCloseDialogue, toggle
         boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
         transition: 'background-color 0.3s ease',
       }}>
-        Abrir Diálogo
+        Interact
       </button>
       <button onClick={handleAbandonInteractionClick} style={{
         padding: '15px 30px',
@@ -47,7 +47,7 @@ const CharacterInteractionOptionsUI = ({ onOpenDialogue, onCloseDialogue, toggle
         boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
         transition: 'background-color 0.3s ease',
       }}>
-        Abandonar Interacción
+        Leave
       </button>
     </div>
   );
