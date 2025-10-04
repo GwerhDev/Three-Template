@@ -9,6 +9,17 @@ import BasicCharacterController from './app/components/three/BasicCharacterContr
 const ThreeScene = forwardRef((props, ref) => {
   const mountRef = useRef(null);
   const controlsRef = useRef(null);
+  const cameraRef = useRef(null);
+  const orbitControlsRef = useRef(null);
+  const targetCameraPosition = useRef(null);
+  const targetOrbitControlsTarget = useRef(null);
+  const isTrackingCharacter = useRef(false);
+  const transitioning = useRef(false);
+  const transitionStartTime = useRef(0);
+  const transitionDuration = useRef(2000); // 2 seconds for orbital transition
+  const initialCameraPosition = useRef(new THREE.Vector3());
+  const initialOrbitControlsTarget = useRef(new THREE.Vector3());
+  const characterPositionAtTransitionStart = useRef(new THREE.Vector3());
 
   useImperativeHandle(ref, () => ({    loadCharacter(characterFile, onLoadCallback) {
       if (controlsRef.current) {
@@ -16,17 +27,24 @@ const ThreeScene = forwardRef((props, ref) => {
       }
     },
     moveCameraBehindCharacter(characterPosition, characterQuaternion) {
-      // Implement camera movement logic here
-      const offset = new THREE.Vector3(0, 10, -20); // Offset behind the character
-      offset.applyQuaternion(characterQuaternion);
+      const finalOffset = new THREE.Vector3(20, 20, -20); // Final following offset
 
-      const newCameraPosition = characterPosition.clone().add(offset);
-      const newCameraTarget = characterPosition.clone().add(new THREE.Vector3(0, 10, 0)); // Look at character's chest area
+      // Store initial camera state
+      initialCameraPosition.current.copy(cameraRef.current.position);
+      initialOrbitControlsTarget.current.copy(orbitControlsRef.current.target);
+      characterPositionAtTransitionStart.current.copy(characterPosition);
 
-      // For simplicity, we'll directly set for now, but a tweening library would be better for smooth animation
-      camera.position.copy(newCameraPosition);
-      orbitControls.target.copy(newCameraTarget);
-      orbitControls.update();
+      // Calculate final camera position and target
+      finalOffset.applyQuaternion(characterQuaternion);
+      const finalCameraPosition = characterPosition.clone().add(finalOffset);
+      const finalOrbitControlsTarget = characterPosition.clone().add(new THREE.Vector3(0, 10, 0));
+
+      // Set transition parameters
+      targetCameraPosition.current = finalCameraPosition; // This will be the target for the orbital transition
+      targetOrbitControlsTarget.current = finalOrbitControlsTarget; // This will be the target for the orbital transition
+      transitionStartTime.current = performance.now();
+      isTrackingCharacter.current = true;
+      transitioning.current = true; // Set transitioning flag
     }
   }));
 
@@ -48,7 +66,8 @@ const ThreeScene = forwardRef((props, ref) => {
     const near = 1.0;
     const far = 1000.0;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    camera.position.set(0, 15, -20);
+    camera.position.set(0, 15, 20);
+    cameraRef.current = camera;
 
     const scene = new THREE.Scene();
 
@@ -73,6 +92,7 @@ const ThreeScene = forwardRef((props, ref) => {
     const orbitControls = new OrbitControls(camera, renderer.domElement);
     orbitControls.target.set(0, 10, 0);
     orbitControls.update();
+    orbitControlsRef.current = orbitControls;
 
     const plane = new THREE.Mesh(
         new THREE.PlaneGeometry(100, 100, 10, 10),
@@ -107,6 +127,54 @@ const ThreeScene = forwardRef((props, ref) => {
     const step = (timeElapsed) => {
       const timeElapsedS = timeElapsed * 0.001;
       controls.Update(timeElapsedS);
+
+      if (isTrackingCharacter.current) {
+        if (transitioning.current) {
+          const elapsedTime = performance.now() - transitionStartTime.current;
+          const t = Math.min(1, elapsedTime / transitionDuration.current);
+
+          const currentCharacterPosition = characterPositionAtTransitionStart.current;
+
+          // Calculate interpolated camera position
+          const interpolatedCameraPosition = new THREE.Vector3().lerpVectors(initialCameraPosition.current, targetCameraPosition.current, t);
+
+          // Calculate orbital component
+          const angle = t * Math.PI; // Rotate 180 degrees
+          const radius = initialCameraPosition.current.distanceTo(currentCharacterPosition) * (1 - t) + targetCameraPosition.current.distanceTo(currentCharacterPosition) * t;
+          
+          const orbitalX = currentCharacterPosition.x + radius * Math.sin(angle);
+          const orbitalZ = currentCharacterPosition.z + radius * Math.cos(angle);
+          const orbitalY = interpolatedCameraPosition.y; // Use interpolated Y
+
+          const orbitalPosition = new THREE.Vector3(orbitalX, orbitalY, orbitalZ);
+
+          cameraRef.current.position.copy(orbitalPosition);
+          orbitControlsRef.current.target.lerpVectors(initialOrbitControlsTarget.current, targetOrbitControlsTarget.current, t);
+
+          if (t >= 1) {
+            transitioning.current = false;
+          }
+        } else {
+          // Continuous following logic
+          if (controls.Target && cameraRef.current && orbitControlsRef.current) {
+            const characterPosition = controls.Target.position;
+            const characterQuaternion = controls.Target.quaternion;
+
+            const finalOffset = new THREE.Vector3(0, 30, -30); // Final following offset
+            finalOffset.applyQuaternion(characterQuaternion);
+
+            targetCameraPosition.current = characterPosition.clone().add(finalOffset);
+            targetOrbitControlsTarget.current = characterPosition.clone().add(new THREE.Vector3(0, 10, 0));
+          }
+        }
+
+        // Smooth camera transition (always active when tracking)
+        if (targetCameraPosition.current && cameraRef.current && orbitControlsRef.current) {
+          cameraRef.current.position.lerp(targetCameraPosition.current, 0.1);
+          orbitControlsRef.current.target.lerp(targetOrbitControlsTarget.current, 0.1);
+          orbitControlsRef.current.update();
+        }
+      }
     }
 
     const handleResize = () => {
